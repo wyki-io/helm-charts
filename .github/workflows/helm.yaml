@@ -1,0 +1,57 @@
+name: Helm Repository Dispatch
+
+on:
+  repository_dispatch:
+    types:
+      - notify-helm-repository
+
+jobs:
+  # If you want to add another listener, just copy / paste this job, change the
+  # if condition and the PROJECT name
+  cert-sync:
+    name: Cert-Sync publication
+    runs-on: ubuntu-latest
+    if: github.event.client_payload.repository == 'wyki-io/cert-sync'
+    env:
+      HELM_ROOT: main
+      PROJECT: cert-sync
+    steps:
+      - name: Checkout local project
+        uses: actions/checkout@v2
+        with:
+          path: ${{ env.HELM_ROOT }}
+      - name: Checkout remote project
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.client_payload.repository }}
+          ref: ${{ github.event.client_payload.ref }}
+          path: ${{ github.event.client_payload.repository }}
+          fetch-depth: 0
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      - name: Package chart
+        run: helm package ${{ github.event.client_payload.repository }}/chart
+      - name: Move chart to project folder
+        run: |
+          export DESTINATION_FOLDER=${{ format('{0}/{1}', env.HELM_ROOT, env.PROJECT) }}
+          mkdir -p $DESTINATION_FOLDER
+          mv ./${{ env.PROJECT }}-*.tgz $DESTINATION_FOLDER
+      - name: Update Helm repository index
+        run: |
+          cd ${{ env.HELM_ROOT }}
+          helm repo index --merge index.yaml .
+      - name: Extract Tag from Ref
+        id: get-tag
+        run: echo ::set-output name=tag::${${{ github.event.client_payload.ref }}#refs/*/}
+      - name: Commit new chart
+        uses: EndBug/add-and-commit@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          cwd: ${{env.HELM_ROOT }}
+          author_name: Wykiki
+          author_email: wykiki@wyki.io
+          message: Release ${{ env.PROJECT }} chart ${{ steps.get-tag.outputs.tag }}
+          add: index.yaml ./${{ env.PROJECT }}
