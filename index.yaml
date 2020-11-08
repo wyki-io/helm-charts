@@ -3,9 +3,9 @@ entries:
   cert-sync:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2020-11-08T20:24:45.02475757Z"
+    created: "2020-11-08T21:37:26.213376875Z"
     description: Synchronize your Kubernetes TLS Secrets to external provider
-    digest: 2ae389916ff0122b09f595e42981813005ddc4958813e09050138bdbfb2e1ce3
+    digest: 8eb61370ccc0dfaff2628957b7fa5feb2ade37d14bff36ea305f80449cfbcfe2
     keywords:
     - kubernetes
     - certificate
@@ -49,4 +49,4 @@ entries:
     urls:
     - cert-sync/cert-sync-0.1.0-rc1.tgz
     version: 0.1.0-rc1
-generated: "2020-11-08T20:24:45.023755866Z"
+generated: "2020-11-08T21:37:26.212425965Z"
